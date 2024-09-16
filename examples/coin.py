@@ -48,3 +48,6 @@ with treeppl.Model(source=source, samples=10_000) as coin:
         x=res.samples, weights=res.nweights, bins=100, stat="density", kde=True
     )
     plt.show()
+    plt.savefig('coin_outcomes_plot.png')  # Save the plot as a PNG file
+
+plt.close()
