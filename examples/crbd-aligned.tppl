@@ -1,0 +1,41 @@
+function simulateExtinctSubtrees(time: Real, lambda: Real, mu: Real) {
+  assume delta ~ Exponential(lambda + mu);
+  if delta > time {
+    weight 0.0;
+    resample;
+  } else {
+    assume speciation ~ Bernoulli(lambda / (lambda + mu));
+    if speciation {
+      simulateExtinctSubtrees(time - delta, lambda, mu);
+      simulateExtinctSubtrees(time - delta, lambda, mu);
+    }
+  }
+}
+
+function simulateUnobservedSpeciations(node: Tree, time: Real, lambda: Real, mu: Real) {
+  assume delta ~ Exponential(lambda);
+  if time - delta > node.age {
+    simulateExtinctSubtrees(time - delta, lambda, mu);
+    simulateUnobservedSpeciations(node, time - delta, lambda, mu);
+  }
+}
+
+function walk(node: Tree, time:Real, lambda: Real, mu: Real) {
+  simulateUnobservedSpeciations(node, time, lambda, mu);
+  observe 0 ~ Poisson(mu * (time - node.age));
+  if node is Node {
+    observe 0.0 ~ Exponential(lambda);
+    walk(node.left, node.age, lambda, mu);
+    walk(node.right, node.age, lambda, mu);
+  }
+}
+
+model function crbd(tree: Tree): Real {
+  assume lambda ~ Gamma(1.0, 1.0);
+  assume mu ~ Gamma(1.0, 0.5);
+  //let leaves = int2real(countLeaves(tree));
+  //logWeight log(2.0) * (leaves - 1.0) - logFactorial(leaves);
+  walk(tree.left, tree.age, lambda, mu);
+  walk(tree.right, tree.age, lambda, mu);
+  return lambda;
+}

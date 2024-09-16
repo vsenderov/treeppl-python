@@ -17,10 +17,11 @@ samples = None
 with treeppl.Model(filename="crbd.tppl", samples=10_000) as crbd:
     while True:
         res = crbd(tree=tree)
-        samples = pd.concat([samples, pd.DataFrame({
-            'lambda': res.subsample(10),
-            'lweight': res.norm_const,
-        })])
-        plt.clf()
-        sns.kdeplot(data=samples, x="lambda", weights=np.exp(samples.lweight - samples.lweight.max()))
+        print(res.ess())
+        # samples = pd.concat([samples, pd.DataFrame({
+        #     'lambda': res.subsample(10),
+        #     'lweight': res.norm_const,
+        # })])
+        # plt.clf()
+        # sns.kdeplot(data=samples, x="lambda", weights=np.exp(samples.lweight - samples.lweight.max()))
         plt.pause(0.05)
